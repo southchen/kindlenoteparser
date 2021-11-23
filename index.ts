@@ -1,24 +1,32 @@
 const path = require('path');
 const curPath = path.resolve();
+import kindleClipping, { Note } from 'kindle-clipping';
 
-const kindleClipping = require('kindle-clipping');
-// console.log(kindleClipping);
-const result = kindleClipping(`${curPath}/My Clippings.txt`).getMergedJson();
+const result = kindleClipping(`${curPath}/My Clippings.txt`).getJson();
 const slicedResult = result.slice(0, 100);
-type Note = {
+const highlight = slicedResult.filter((r: Note) => r.type === 'Highlight');
+
+type BookHighlight = {
   content: string;
 };
 type Book = {
   name: string;
-  id: number;
-  notes: Note[];
+  // id: number;
+  highlight: BookHighlight[];
 };
 
-const reduceByBookName = slicedResult.reduce((arr, note) => {
+const reduceByBookName = highlight.reduce((arr, note) => {
   const curBook = arr.find((book) => {
-    book.bookName === note.bookName;
+    return book.name === note.bookName;
   });
   if (!curBook) {
-    arr.push(note);
+    let bookNote = {
+      name: note.bookName,
+      highlight: [{ content: note.content }],
+    };
+    arr.push(bookNote);
+  } else {
+    curBook.highlight.push({ content: note.content });
   }
+  return arr;
 }, [] as Book[]);
